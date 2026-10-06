@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile – inner and outer width and depth</title>
+<style>
+  body { margin: 0; padding: 8px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ============ COPY FROM HERE (1/3): STYLES ============ -->
+<style>
+  .prof3d {
+    --c-text: #2c2c2a; --c-muted: #6b6a64; --c-border: #d3d1c7;
+    --c-stage: #fafaf8; --c-cell: #ffffff; --c-track: #d3d1c7;
+    font-family: inherit; color: var(--c-text); max-width: 760px; margin: 0 auto; line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  .prof3d[data-theme="dark"] {
+    --c-text: #ecebe6; --c-muted: #a3a199; --c-border: #444441;
+    --c-stage: #232321; --c-cell: #1c1c1a; --c-track: #5f5e5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    .prof3d[data-theme="auto"] {
+      --c-text: #ecebe6; --c-muted: #a3a199; --c-border: #444441;
+      --c-stage: #232321; --c-cell: #1c1c1a; --c-track: #5f5e5a;
+    }
+  }
+  .prof3d *, .prof3d *::before, .prof3d *::after { box-sizing: border-box; }
+
+  .prof3d .p3-stage { position: relative; border: 1px solid var(--c-border); background: var(--c-stage); margin-bottom: 16px; }
+  .prof3d .p3-view { width: 100%; height: 420px; cursor: grab; touch-action: none; outline: none; }
+  .prof3d .p3-view:focus-visible { box-shadow: inset 0 0 0 2px var(--c-text); }
+  .prof3d .p3-view canvas { display: block; }
+  .prof3d .p3-legend { position: absolute; top: 12px; left: 14px; display: flex; gap: 16px; font-size: 12px; color: var(--c-muted); pointer-events: none; }
+  .prof3d .p3-sw { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; margin-right: 6px; flex: none; }
+  .prof3d .p3-sw-teal { background: #5DCAA5; border: 1px solid #0F6E56; }
+  .prof3d .p3-sw-orange { background: #F0997B; border: 1px solid #993C1D; }
+  .prof3d .p3-hint { position: absolute; bottom: 10px; left: 14px; font-size: 12px; color: var(--c-muted); pointer-events: none; }
+  .prof3d .p3-reset {
+    position: absolute; top: 8px; right: 8px; font: inherit; font-size: 12px; color: var(--c-text);
+    background: var(--c-cell); border: 1px solid var(--c-border); border-radius: 0; padding: 4px 10px; cursor: pointer;
+  }
+  .prof3d .p3-reset:hover { border-color: var(--c-text); }
+  .prof3d .p3-reset:focus-visible { outline: 2px solid var(--c-text); outline-offset: 2px; }
+
+  .prof3d .p3-row { display: flex; align-items: center; gap: 16px; margin: 0 0 6px; }
+  .prof3d .p3-row label { font-size: 14px; color: var(--c-muted); flex: 0 0 130px; display: flex; align-items: center; }
+  .prof3d .p3-row output { font-size: 14px; font-weight: 500; min-width: 64px; text-align: right; }
+  .prof3d input[type="range"] {
+    --pct: 50%;
+    flex: 1; height: 24px; margin: 0; background: transparent; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+  }
+  .prof3d input[type="range"]:focus-visible { outline: 2px solid var(--c-text); outline-offset: 2px; }
+  .prof3d input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px; background: linear-gradient(to right, var(--c-text) var(--pct), var(--c-track) var(--pct));
+  }
+  .prof3d input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 16px; margin-top: -7px;
+    background: var(--c-text); border: 2px solid var(--c-cell); border-radius: 0;
+  }
+  .prof3d input[type="range"]::-moz-range-track { height: 2px; background: var(--c-track); }
+  .prof3d input[type="range"]::-moz-range-progress { height: 2px; background: var(--c-text); }
+  .prof3d input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 16px; background: var(--c-text); border: 2px solid var(--c-cell); border-radius: 0;
+  }
+  .prof3d .p3-gap { height: 8px; }
+  .prof3d .p3-actions { margin: 0 0 14px; }
+  .prof3d .p3-toggle {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: inherit; font-size: 14px; color: var(--c-text); background: var(--c-cell);
+    border: 1px solid var(--c-border); border-radius: 0; padding: 7px 14px 7px 10px; cursor: pointer;
+  }
+  .prof3d .p3-toggle:hover { border-color: var(--c-text); }
+  .prof3d .p3-toggle:focus-visible { outline: 2px solid var(--c-text); outline-offset: 2px; }
+  .prof3d .p3-check {
+    position: relative; width: 14px; height: 14px; flex: none;
+    border: 1.5px solid var(--c-text); background: transparent;
+  }
+  .prof3d .p3-toggle[aria-pressed="true"] .p3-check { background: var(--c-text); }
+  .prof3d .p3-toggle[aria-pressed="true"] .p3-check::after {
+    content: ""; position: absolute; left: 3.5px; top: 0.5px; width: 4px; height: 8px;
+    border: solid var(--c-cell); border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+
+  .prof3d .p3-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--c-border); border: 1px solid var(--c-border); margin: 18px 0 0;
+  }
+  .prof3d .p3-stat { background: var(--c-cell); padding: 12px 16px; }
+  .prof3d .p3-stat span { display: block; font-size: 12px; color: var(--c-muted); }
+  .prof3d .p3-stat strong { display: block; font-size: 18px; font-weight: 500; margin-top: 2px; }
+
+  @media (max-width: 560px) {
+    .prof3d .p3-stats { grid-template-columns: 1fr; }
+    .prof3d .p3-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; }
+    .prof3d .p3-stat strong { font-size: 15px; margin-top: 0; }
+  }
+  @media (max-width: 480px) {
+    .prof3d .p3-view { height: 340px; }
+    .prof3d .p3-row { gap: 10px; }
+    .prof3d .p3-row label { flex-basis: 108px; font-size: 13px; }
+    .prof3d .p3-hint { display: none; }
+  }
+</style>
+<!-- ============ COPY UNTIL HERE (1/3) ============ -->
+
+
+<!-- ============ COPY FROM HERE (2/3): THE TOOL ============
+     data-theme: "light" (default), "dark", or "auto" (follows the visitor's system setting).
+     data-wi, data-di, data-wo, data-do set the starting values in mm.
+     data-square: "on" (width and depth move together) or "off". -->
+<div class="prof3d" data-theme="light" data-wi="20" data-di="20" data-wo="60" data-do="60" data-square="on">
+  <div class="p3-stage">
+    <div class="p3-view" tabindex="0" role="img" aria-label="3D view of the profile. Drag or use the arrow keys to rotate."></div>
+    <div class="p3-legend" aria-hidden="true">
+      <span><span class="p3-sw p3-sw-orange"></span>Inner</span>
+      <span><span class="p3-sw p3-sw-teal"></span>Outer</span>
+    </div>
+    <div class="p3-hint" aria-hidden="true">Drag or use the arrow keys to rotate</div>
+    <button type="button" class="p3-reset">Reset view</button>
+  </div>
+  <div class="p3-actions">
+    <button type="button" class="p3-toggle" data-action="square" aria-pressed="true"><span class="p3-check" aria-hidden="true"></span>Keep square (width = depth)</button>
+  </div>
+  <div class="p3-row">
+    <label><span class="p3-sw p3-sw-orange"></span>Width inner</label>
+    <input type="range" data-input="wi" min="0" max="150" step="1" value="20" aria-label="Width inner in mm">
+    <output data-out="wi">20 mm</output>
+  </div>
+  <div class="p3-row">
+    <label><span class="p3-sw p3-sw-orange"></span>Depth inner</label>
+    <input type="range" data-input="di" min="0" max="150" step="1" value="20" aria-label="Depth inner in mm">
+    <output data-out="di">20 mm</output>
+  </div>
+  <div class="p3-gap"></div>
+  <div class="p3-row">
+    <label><span class="p3-sw p3-sw-teal"></span>Width outer</label>
+    <input type="range" data-input="wo" min="0" max="150" step="1" value="60" aria-label="Width outer in mm">
+    <output data-out="wo">60 mm</output>
+  </div>
+  <div class="p3-row">
+    <label><span class="p3-sw p3-sw-teal"></span>Depth outer</label>
+    <input type="range" data-input="do" min="0" max="150" step="1" value="60" aria-label="Depth outer in mm">
+    <output data-out="do">60 mm</output>
+  </div>
+  <div class="p3-stats">
+    <div class="p3-stat"><span>Inner (W × D)</span><strong data-stat="in"></strong></div>
+    <div class="p3-stat"><span>Outer (W × D)</span><strong data-stat="out"></strong></div>
+    <div class="p3-stat"><span>Total (W × D)</span><strong data-stat="total"></strong></div>
+  </div>
+</div>
+<!-- ============ COPY UNTIL HERE (2/3) ============ -->
+
+
+<!-- ============ COPY FROM HERE (3/3): SCRIPTS ============
+     Put these at the end of your page, before </body>. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  function num(v, d) { var n = parseFloat(v); return isNaN(n) ? d : n; }
+
+  function init(el) {
+    el.setAttribute('data-ready', '1');
+    var view = el.querySelector('.p3-view');
+    var q = function (s) { return el.querySelector(s); };
+
+    var scene = new THREE.Scene();
+    var cam = new THREE.PerspectiveCamera(30, 1, 0.01, 200);
+    var ren = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    ren.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    ren.setClearColor(0x000000, 0);
+    view.appendChild(ren.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.62));
+    var dl = new THREE.DirectionalLight(0xffffff, 0.5); dl.position.set(3, 5, 4); scene.add(dl);
+    var fl = new THREE.DirectionalLight(0xffffff, 0.22); fl.position.set(-4, 2, 5); scene.add(fl);
+
+    var root = new THREE.Group(); scene.add(root);
+    var inner = new THREE.Group(); root.add(inner);
+    var START = { x: 0.3, y: -0.45 };
+    root.rotation.set(START.x, START.y, 0);
+
+    var k = 0.01;          // scene units per mm
+    var L = 120;           // displayed profile length in mm
+    var unit = new THREE.BoxGeometry(1, 1, 1);
+    var edges = new THREE.EdgesGeometry(unit);
+    function piece(fill, line) {
+      var g = new THREE.Group();
+      g.add(new THREE.Mesh(unit, new THREE.MeshLambertMaterial({ color: fill })));
+      g.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: line })));
+      inner.add(g); return g;
+    }
+    var boxOuter = piece(0x5DCAA5, 0x0F6E56);   // teal, top-left
+    var boxInner = piece(0xF0997B, 0x993C1D);   // orange, bottom-right
+
+    function place(p, x0, x1, y0, y1, z0, z1) {
+      var w = x1 - x0, h = y1 - y0, d = z1 - z0;
+      p.visible = w > 0 && h > 0 && d > 0;
+      p.scale.set(Math.max(w, 1e-4) * k, Math.max(h, 1e-4) * k, Math.max(d, 1e-4) * k);
+      p.position.set((x0 + x1) / 2 * k, (y0 + y1) / 2 * k, (z0 + z1) / 2 * k);
+    }
+
+    // Dimension lines, drawn on the front face
+    function dimObj(color) {
+      var g = new THREE.BufferGeometry();
+      var o = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: color }));
+      inner.add(o); return o;
+    }
+    var dimOuter = dimObj(0x0F6E56), dimInner = dimObj(0x993C1D);
+    function seg(arr, x1, y1, x2, y2) { var z = 0.6; arr.push(x1 * k, y1 * k, z * k, x2 * k, y2 * k, z * k); }
+    function dim(arr, ax, ay, bx, by, nx, ny, off, F) {
+      var gap = F * 0.03, ext = F * 0.05, t = F * 0.035;
+      seg(arr, ax + nx * gap, ay + ny * gap, ax + nx * (off + ext), ay + ny * (off + ext));
+      seg(arr, bx + nx * gap, by + ny * gap, bx + nx * (off + ext), by + ny * (off + ext));
+      var dax = ax + nx * off, day = ay + ny * off, dbx = bx + nx * off, dby = by + ny * off;
+      seg(arr, dax, day, dbx, dby);
+      var len = Math.hypot(bx - ax, by - ay) || 1;
+      var sx = (bx - ax) / len + nx, sy = (by - ay) / len + ny, sl = Math.hypot(sx, sy) || 1;
+      sx = sx / sl * t; sy = sy / sl * t;
+      seg(arr, dax - sx, day - sy, dax + sx, day + sy);
+      seg(arr, dbx - sx, dby - sy, dbx + sx, dby + sy);
+    }
+    function setDims(obj, arr) {
+      obj.geometry.dispose();
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+      obj.geometry = g;
+    }
+
+    // Square tags
+    function makeLabel(stripe) {
+      var c = document.createElement('canvas'); c.width = 420; c.height = 88;
+      var tex = new THREE.CanvasTexture(c);
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+      sp.renderOrder = 10; inner.add(sp);
+      sp.last = '';
+      sp.draw = function (txt) {
+        if (txt === sp.last) return; sp.last = txt;
+        var x = c.getContext('2d');
+        x.clearRect(0, 0, 420, 88);
+        x.fillStyle = '#ffffff'; x.fillRect(4, 4, 412, 80);
+        x.fillStyle = stripe; x.fillRect(4, 4, 12, 80);
+        x.lineWidth = 3; x.strokeStyle = '#2c2c2a'; x.strokeRect(4, 4, 412, 80);
+        x.fillStyle = '#2c2c2a'; x.font = '500 44px sans-serif';
+        x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(txt, 218, 46);
+        tex.needsUpdate = true;
+      };
+      return sp;
+    }
+    var lWo = makeLabel('#5DCAA5'), lDo = makeLabel('#5DCAA5');
+    var lWi = makeLabel('#F0997B'), lDi = makeLabel('#F0997B');
+
+    var Wi = num(el.getAttribute('data-wi'), 20), Di = num(el.getAttribute('data-di'), 20);
+    var Wo = num(el.getAttribute('data-wo'), 60), Do = num(el.getAttribute('data-do'), 60);
+    var ins = { wi: q('[data-input="wi"]'), di: q('[data-input="di"]'), wo: q('[data-input="wo"]'), do: q('[data-input="do"]') };
+    ins.wi.value = Wi; ins.di.value = Di; ins.wo.value = Wo; ins.do.value = Do;
+    var fmt = function (n) { return Math.round(n).toLocaleString(); };
+
+    function setPct(input) {
+      var p = (input.value - input.min) / (input.max - input.min) * 100;
+      input.style.setProperty('--pct', p + '%');
+    }
+    function render() { ren.render(scene, cam); }
+
+    function update() {
+      // Frame size: stays fixed for normal values so nothing seems to shrink when one value changes
+      var F = Math.max(80, Wi, Di, Wo, Do);
+
+      // Outer sits top-left, inner bottom-right; they touch along the corner edge at x = 0, y = 0
+      place(boxOuter, -Wo, 0, 0, Do, -L, 0);
+      place(boxInner, 0, Wi, -Di, 0, -L, 0);
+
+      var off = F * 0.16;
+      var a = [], b = [];
+      if (Wo > 0 && Do > 0) {
+        dim(a, -Wo, Do, 0, Do, 0, 1, off, F);       // width outer, above
+        dim(a, -Wo, 0, -Wo, Do, -1, 0, off, F);     // depth outer, left
+      }
+      if (Wi > 0 && Di > 0) {
+        dim(b, Wi, -Di, Wi, 0, 1, 0, off, F);       // depth inner, right
+        dim(b, 0, -Di, Wi, -Di, 0, -1, off, F);     // width inner, below
+      }
+      setDims(dimOuter, a); setDims(dimInner, b);
+
+      var lw = F * 0.9, lh = lw * 88 / 420, pad = F * 0.12;
+      [lWi, lDi, lWo, lDo].forEach(function (l) { l.scale.set(lw * k, lh * k, 1); });
+      lWi.draw('Width inner ' + fmt(Wi) + ' mm');
+      lDi.draw('Depth inner ' + fmt(Di) + ' mm');
+      lWo.draw('Width outer ' + fmt(Wo) + ' mm');
+      lDo.draw('Depth outer ' + fmt(Do) + ' mm');
+      lWo.visible = lDo.visible = Wo > 0 && Do > 0;
+      lWi.visible = lDi.visible = Wi > 0 && Di > 0;
+      var z = 1 * k;
+      lWo.position.set(-Wo / 2 * k, (Do + off + pad + lh / 2) * k, z);
+      lDo.position.set((-Wo - off - pad - lw / 2) * k, Do / 2 * k, z);
+      lDi.position.set((Wi + off + pad + lw / 2) * k, -Di / 2 * k, z);
+      lWi.position.set(Wi / 2 * k, (-Di - off - pad - lh / 2) * k, z);
+
+      // Rotate around the middle of the profile length, at the shared corner edge
+      inner.position.set(0, 0, L / 2 * k);
+      var fit = Math.max(1, 1.3 / (cam.aspect || 1.6));   // move back on narrow screens
+      cam.position.set(0, 0, (F * 2.6 + L * 0.5) * k * 1.9 * fit);
+      root.position.set(0, F * 0.14 * k, 0);   // lift slightly, the profile length recedes upward
+      cam.lookAt(0, 0, 0);
+
+      q('[data-out="wi"]').textContent = fmt(Wi) + ' mm';
+      q('[data-out="di"]').textContent = fmt(Di) + ' mm';
+      q('[data-out="wo"]').textContent = fmt(Wo) + ' mm';
+      q('[data-out="do"]').textContent = fmt(Do) + ' mm';
+      q('[data-stat="in"]').textContent = fmt(Wi) + ' × ' + fmt(Di) + ' mm';
+      q('[data-stat="out"]').textContent = fmt(Wo) + ' × ' + fmt(Do) + ' mm';
+      q('[data-stat="total"]').textContent = fmt(Wi + Wo) + ' × ' + fmt(Di + Do) + ' mm';
+      [ins.wi, ins.di, ins.wo, ins.do].forEach(setPct);
+      render();
+    }
+
+    function resize() {
+      var w = view.clientWidth || 680, h = view.clientHeight || 420;
+      ren.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); update();
+    }
+    function rotate(dx, dy) {
+      root.rotation.y += dx;
+      root.rotation.x = Math.max(-1.5, Math.min(1.5, root.rotation.x + dy));
+      render();
+    }
+    var drag = false, px = 0, py = 0;
+    view.addEventListener('pointerdown', function (e) {
+      drag = true; px = e.clientX; py = e.clientY;
+      view.setPointerCapture(e.pointerId); view.style.cursor = 'grabbing';
+    });
+    view.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      rotate((e.clientX - px) * 0.01, (e.clientY - py) * 0.01);
+      px = e.clientX; py = e.clientY;
+    });
+    var end = function () { drag = false; view.style.cursor = 'grab'; };
+    view.addEventListener('pointerup', end);
+    view.addEventListener('pointercancel', end);
+    view.addEventListener('keydown', function (e) {
+      var s = 0.15;
+      if (e.key === 'ArrowLeft') rotate(-s, 0);
+      else if (e.key === 'ArrowRight') rotate(s, 0);
+      else if (e.key === 'ArrowUp') rotate(0, -s);
+      else if (e.key === 'ArrowDown') rotate(0, s);
+      else return;
+      e.preventDefault();
+    });
+    q('.p3-reset').addEventListener('click', function () { root.rotation.set(START.x, START.y, 0); render(); });
+
+    // "Keep square": width and depth of each component move together.
+    // Turning it on grows the smaller of width/depth to the larger, for inner and for outer.
+    var toggle = q('[data-action="square"]');
+    var square = el.getAttribute('data-square') !== 'off';
+    var anim = null;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function syncInputs() {
+      ins.wi.value = Math.round(Wi); ins.di.value = Math.round(Di);
+      ins.wo.value = Math.round(Wo); ins.do.value = Math.round(Do);
+    }
+    function stopAnim() { if (anim) { cancelAnimationFrame(anim); anim = null; } }
+    function animateTo(t) {
+      stopAnim();
+      var from = { wi: Wi, di: Di, wo: Wo, do: Do };
+      var dur = reduceMotion ? 0 : 650, t0 = null;
+      function step(now) {
+        if (t0 === null) t0 = now;
+        var p = dur ? Math.min(1, (now - t0) / dur) : 1;
+        var e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        Wi = from.wi + (t.wi - from.wi) * e;
+        Di = from.di + (t.di - from.di) * e;
+        Wo = from.wo + (t.wo - from.wo) * e;
+        Do = from.do + (t.do - from.do) * e;
+        if (p >= 1) { Wi = t.wi; Di = t.di; Wo = t.wo; Do = t.do; anim = null; }
+        else anim = requestAnimationFrame(step);
+        syncInputs();
+        update();
+      }
+      anim = requestAnimationFrame(step);
+    }
+    function setSquare(on) {
+      square = on;
+      toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (!on) return;
+      var si = Math.max(Wi, Di), so = Math.max(Wo, Do);
+      if (si !== Wi || si !== Di || so !== Wo || so !== Do) animateTo({ wi: si, di: si, wo: so, do: so });
+    }
+    toggle.setAttribute('aria-pressed', square ? 'true' : 'false');
+    if (square) {   // start square without animation
+      Wi = Di = Math.max(Wi, Di); Wo = Do = Math.max(Wo, Do);
+      syncInputs();
+    }
+    toggle.addEventListener('click', function () { setSquare(!square); });
+
+    function onSlide(input, setter) {
+      input.addEventListener('input', function () { stopAnim(); setter(+input.value); syncInputs(); update(); });
+    }
+    onSlide(ins.wi, function (v) { Wi = v; if (square) Di = v; });
+    onSlide(ins.di, function (v) { Di = v; if (square) Wi = v; });
+    onSlide(ins.wo, function (v) { Wo = v; if (square) Do = v; });
+    onSlide(ins.do, function (v) { Do = v; if (square) Wo = v; });
+
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(view);
+    else window.addEventListener('resize', resize);
+    resize(); update();
+  }
+
+  document.querySelectorAll('.prof3d:not([data-ready])').forEach(init);
+})();
+</script>
+<!-- ============ COPY UNTIL HERE (3/3) ============ -->
+
+</body>
+</html>
